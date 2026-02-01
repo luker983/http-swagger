@@ -181,6 +181,7 @@ func Handler(configFns ...func(*Config)) http.HandlerFunc {
 
 	// create a template with name
 	index, _ := template.New("swagger_index.html").Parse(indexTempl)
+	confScript, _ := template.New("swagger-ui-conf.js").Parse(scriptTempl)
 
 	re := regexp.MustCompile(`^(.*/)([^?].*)?[?|.]*$`)
 
@@ -212,6 +213,8 @@ func Handler(configFns ...func(*Config)) http.HandlerFunc {
 		switch path {
 		case "index.html":
 			_ = index.Execute(w, config)
+		case "swagger-ui-conf.js":
+			_ = confScript.Execute(w, config)
 		case "doc.json":
 			doc, err := swag.ReadDoc(config.InstanceName)
 			if err != nil {
@@ -304,7 +307,13 @@ const indexTempl = `<!-- HTML for static distribution bundle build -->
 
 <script src="./swagger-ui-bundle.js"> </script>
 <script src="./swagger-ui-standalone-preset.js"> </script>
-<script>
+<script src="./swagger-ui-conf.js"> </script>
+</body>
+
+</html>
+`
+
+const scriptTempl = `
 window.onload = function() {
   {{- if .BeforeScript}}
   {{.BeforeScript}}
@@ -340,8 +349,4 @@ window.onload = function() {
   {{.AfterScript}}
   {{- end}}
 }
-</script>
-</body>
-
-</html>
 `
